@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { auth } from '@/app/firebase/config';
+import { auth, db, storage } from '@/app/firebase/config';
 import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';

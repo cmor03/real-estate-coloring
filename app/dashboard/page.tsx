@@ -113,7 +113,7 @@ export default function DashboardPage() {
         setLoadingMore(false);
       }
     }
-  }, [lastDoc]); // Removed lastDoc dependency
+  }, []); // Removed lastDoc dependency
 
 
   useEffect(() => {
