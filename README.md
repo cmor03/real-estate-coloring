@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Real Estate Coloring Book Generator
 
-## Getting Started
+A web application that allows users to upload real estate images and convert them into coloring book pages using AI.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- User authentication with Firebase
+- Image upload and processing
+- AI-powered image analysis with GPT-4 Vision
+- Coloring book generation with DALL-E 3
+- User credit system
+- Library of generated colorings
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Next.js 14 (App Router)
+- Firebase (Authentication, Firestore, Storage)
+- OpenAI API (GPT-4 Vision, DALL-E 3)
+- Tailwind CSS
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup
 
-## Learn More
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Set up environment variables in `.env.local`:
+   ```
+   # Firebase Configuration
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
 
-To learn more about Next.js, take a look at the following resources:
+   # Firebase Admin SDK
+   FIREBASE_PROJECT_ID=your_project_id
+   FIREBASE_CLIENT_EMAIL=your_client_email
+   FIREBASE_PRIVATE_KEY=your_private_key
+   FIREBASE_STORAGE_BUCKET=your_storage_bucket
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   # OpenAI API
+   OPENAI_API_KEY=your_openai_api_key
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Run the development server:
+   ```
+   npm run dev
+   ```
 
-## Deploy on Vercel
+## How It Works
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. User uploads a real estate image
+2. The image is analyzed by GPT-4 Vision to generate a detailed description
+3. The description is used by DALL-E 3 to create a coloring book style illustration
+4. The generated coloring is saved to the user's library
+5. User credits are deducted for each generation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Firebase Setup
+
+1. Create a Firebase project
+2. Enable Authentication, Firestore, and Storage
+3. Set up Firestore security rules
+4. Create a service account for Firebase Admin SDK
+
+## OpenAI Setup
+
+1. Create an OpenAI account
+2. Generate an API key
+3. Ensure you have access to GPT-4 Vision and DALL-E 3
+
+## License
+
+MIT
