@@ -113,7 +113,7 @@ export default function DashboardPage() {
         setLoadingMore(false);
       }
     }
-  }, []); // Removed lastDoc dependency
+  }, [lastDoc]); // Removed lastDoc dependency
 
 
   useEffect(() => {
@@ -171,6 +171,7 @@ export default function DashboardPage() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
     // Now useEffect depends on the stable useCallback references
+    // Added fetchUserData and fetchColorings to the dependency array below
   }, [router, searchParams, fetchUserData, fetchColorings]);
 
   const loadMore = async () => {
