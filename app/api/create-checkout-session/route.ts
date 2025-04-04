@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from 'firebase-admin';
+import { auth } from '@/firebase/firebaseAdmin'; // Import admin auth from shared file
 import Stripe from 'stripe';
 
 // Initialize Stripe
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await auth().verifyIdToken(token);
+    const decodedToken = await auth.verifyIdToken(token);
     const userId = decodedToken.uid;
 
     // Parse request body

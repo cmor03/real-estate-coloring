@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { auth, firestore } from '../../lib/firebase';
+import { auth, db } from '@/app/firebase/config';
 import { createUserWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -23,7 +23,7 @@ export default function SignupPage() {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       
       // Create user document in Firestore
-      await setDoc(doc(firestore, 'users', user.uid), {
+      await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
         credits: 5, // Default free credits
         createdAt: new Date(),

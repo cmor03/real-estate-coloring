@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { auth } from '../../lib/firebase';
-import { db, ensureUserDocument } from '../../app/firebase/config';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { useState, useEffect, useRef } from 'react';
+import { db, auth, ensureUserDocument } from '@/app/firebase/config';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit, startAfter, QueryDocumentSnapshot } from 'firebase/firestore';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 interface Coloring {
   id: string;
@@ -33,6 +32,8 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -76,10 +77,20 @@ export default function DashboardPage() {
       }
     });
 
+    // Click outside handler for dropdown
+    const handleClickOutside = (event: MouseEvent) => {
+        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+            setIsMenuOpen(false);
+        }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
     return () => {
       unsubscribe();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [router, searchParams]);
 
@@ -230,6 +241,7 @@ export default function DashboardPage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      setIsMenuOpen(false);
       router.push('/login');
     } catch (error) {
       console.error('Error signing out:', error);
@@ -250,26 +262,42 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Your Coloring Pages</h1>
-          <div className="flex items-center space-x-4">
-            <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-md font-medium">
+      <header className="bg-white shadow sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md font-medium text-sm sm:text-base">
               Credits: {credits}
             </div>
             <button
               onClick={() => handleBuyCredits(STRIPE_PRICE_IDS.TWENTY_CREDITS)}
               disabled={isProcessingPayment}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isProcessingPayment ? 'Processing...' : 'Buy 20 Credits ($10)'}
+              {isProcessingPayment ? 'Processing...' : 'Buy Credits'}
             </button>
-            <button
-              onClick={handleLogout}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md font-medium"
-            >
-              Logout
-            </button>
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                aria-label="User menu"
+                aria-haspopup="true"
+              >
+                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              {isMenuOpen && (
+                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-20">
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -292,36 +320,31 @@ export default function DashboardPage() {
         {colorings.length === 0 ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-semibold text-gray-700 mb-4">No coloring pages yet</h2>
-            <p className="text-gray-500 mb-6">Upload a real estate image to create your first coloring page!</p>
-            <Link href="/generate" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium">
-              Create Your First Coloring Page
-            </Link>
+            <p className="text-gray-500 mb-6">Click the &apos;+&apos; button to create your first coloring page!</p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {colorings.map((coloring) => (
-                <div key={coloring.id} className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="p-4">
-                    <h3 className="text-lg font-medium text-gray-900 truncate">{coloring.address}</h3>
+                <div key={coloring.id} className="bg-white overflow-hidden shadow rounded-lg flex flex-col">
+                  <div className="p-4 flex-grow">
+                    <h3 className="text-lg font-medium text-gray-900 truncate" title={coloring.address}>{coloring.address || 'Untitled Coloring'}</h3>
                     <p className="mt-1 text-sm text-gray-500">
                       Created on {new Date(coloring.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="bg-gray-50 px-4 py-4 sm:px-6">
-                    <div className="flex justify-between">
-                      <a
-                        href={coloring.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 font-medium"
+                  <div className="bg-gray-50 px-4 py-3 sm:px-6 border-t border-gray-200">
+                    <div className="flex justify-between items-center text-sm">
+                      <Link
+                        href={`/coloring/${coloring.id}`}
+                        className="font-medium text-blue-600 hover:text-blue-800"
                       >
-                        View Coloring Page
-                      </a>
+                        View
+                      </Link>
                       <a
                         href={coloring.url}
-                        download
-                        className="text-green-600 hover:text-green-800 font-medium"
+                        download={`coloring-${coloring.address || coloring.id}.png`}
+                        className="font-medium text-green-600 hover:text-green-800"
                       >
                         Download
                       </a>
@@ -345,6 +368,16 @@ export default function DashboardPage() {
           </>
         )}
       </main>
+
+      <Link
+        href="/generate"
+        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg flex items-center justify-center z-20"
+        aria-label="Create new coloring page"
+      >
+        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+      </Link>
     </div>
   );
 } 
