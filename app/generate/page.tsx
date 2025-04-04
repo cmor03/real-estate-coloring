@@ -2,7 +2,6 @@
 
 import { useState, useEffect, FormEvent, useRef } from 'react';
 import { auth, db } from '@/app/firebase/config';
-import { storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, addDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';

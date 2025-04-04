@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { db, auth, ensureUserDocument } from '@/app/firebase/config';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit, startAfter, QueryDocumentSnapshot } from 'firebase/firestore';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -37,70 +37,11 @@ export default function DashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    // Check for success or canceled payment
-    const success = searchParams?.get('success');
-    const canceled = searchParams?.get('canceled');
-    
-    if (success) {
-      toast.success('Payment successful! Your credits have been added.');
-      // Refresh user data to show updated credits
-      if (auth.currentUser) {
-        fetchUserData(auth.currentUser.uid);
-      }
-    } else if (canceled) {
-      toast.error('Payment canceled.');
-    }
-    
-    // Check online status
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    setIsOffline(!navigator.onLine);
-
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      try {
-        setError(null);
-        if (user) {
-          await fetchUserData(user.uid);
-          await fetchColorings(user.uid);
-        } else {
-          router.push('/login');
-        }
-      } catch (error) {
-        console.error('Error in dashboard initialization:', error);
-        setError(error instanceof Error ? error.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    // Click outside handler for dropdown
-    const handleClickOutside = (event: MouseEvent) => {
-        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-            setIsMenuOpen(false);
-        }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      unsubscribe();
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [router, searchParams]);
-
-  const fetchUserData = async (userId: string) => {
+  // Define fetch functions with useCallback before useEffect
+  const fetchUserData = useCallback(async (userId: string) => {
     try {
       console.log('Fetching user data for:', userId);
-      
-      // Ensure user document exists
       await ensureUserDocument(userId);
-      
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (userDoc.exists()) {
         setCredits(userDoc.data().credits || 0);
@@ -118,21 +59,22 @@ export default function DashboardPage() {
           stack: error.stack
         });
       }
-      throw error;
+      // Rethrow or set error state as needed
+      setError('Failed to load user data.'); 
     }
-  };
+  }, [router]); // Dependencies for fetchUserData
 
-  const fetchColorings = async (userId: string, isLoadMore = false) => {
+  const fetchColorings = useCallback(async (userId: string, isLoadMore = false) => {
     try {
       if (isLoadMore) {
         setLoadingMore(true);
+      } else {
+        // Reset error only when fetching initial batch
+        setError(null);
       }
-      setError(null);
 
       console.log('Fetching colorings for user:', userId, 'isLoadMore:', isLoadMore);
-      console.log('Network status:', navigator.onLine ? 'online' : 'offline');
-
-      // Create a query that doesn't require a composite index
+      
       let coloringsQuery = query(
         collection(db, 'colorings'),
         where('userId', '==', userId),
@@ -150,10 +92,7 @@ export default function DashboardPage() {
         );
       }
 
-      console.log('Executing Firestore query...');
       const querySnapshot = await getDocs(coloringsQuery);
-      console.log('Query completed, documents:', querySnapshot.size);
-
       const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
       setLastDoc(lastVisible);
       setHasMore(querySnapshot.docs.length === ITEMS_PER_PAGE);
@@ -164,29 +103,75 @@ export default function DashboardPage() {
         createdAt: doc.data().createdAt?.toDate() || new Date()
       })) as Coloring[];
 
-      if (isLoadMore) {
-        setColorings(prev => [...prev, ...coloringsData]);
-      } else {
-        setColorings(coloringsData);
-      }
+      setColorings(prev => isLoadMore ? [...prev, ...coloringsData] : coloringsData);
       console.log('Colorings updated successfully');
     } catch (error) {
       console.error('Error fetching colorings:', error);
-      if (error instanceof Error) {
-        console.error('Error details:', {
-          message: error.message,
-          name: error.name,
-          stack: error.stack
-        });
-      }
       setError(error instanceof Error ? error.message : 'Failed to fetch colorings');
-      throw error;
     } finally {
       if (isLoadMore) {
         setLoadingMore(false);
       }
     }
-  };
+  }, []); // Removed lastDoc dependency
+
+
+  useEffect(() => {
+    const success = searchParams?.get('success');
+    const canceled = searchParams?.get('canceled');
+    
+    if (success) {
+      toast.success('Payment successful! Your credits have been added.');
+      if (auth.currentUser) {
+        fetchUserData(auth.currentUser.uid);
+      }
+      // Clear query params to prevent message on refresh
+      router.replace('/dashboard', { scroll: false });
+    } else if (canceled) {
+      toast.error('Payment canceled.');
+      // Clear query params
+      router.replace('/dashboard', { scroll: false });
+    }
+    
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    setIsOffline(!navigator.onLine);
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true); // Set loading true when auth state changes
+      try {
+        if (user) {
+          // Fetch data using the memoized functions
+          await fetchUserData(user.uid);
+          await fetchColorings(user.uid, false); // Fetch initial batch
+        } else {
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('Error in auth state change handler:', error);
+        setError(error instanceof Error ? error.message : 'An authentication error occurred');
+      } finally {
+        setLoading(false); // Set loading false after operations complete
+      }
+    });
+
+    const handleClickOutside = (event: MouseEvent) => {
+        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+            setIsMenuOpen(false);
+        }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+    // Now useEffect depends on the stable useCallback references
+  }, [router, searchParams, fetchUserData, fetchColorings]);
 
   const loadMore = async () => {
     const user = auth.currentUser;
