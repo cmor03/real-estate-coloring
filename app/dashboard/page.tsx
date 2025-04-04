@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { db, auth, ensureUserDocument } from '@/app/firebase/config';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit, startAfter, QueryDocumentSnapshot } from 'firebase/firestore';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -22,7 +22,8 @@ const STRIPE_PRICE_IDS = {
   TWENTY_CREDITS: 'price_20credits', // $10 for 20 credits
 };
 
-export default function DashboardPage() {
+// Renamed original component to DashboardContent
+function DashboardContent() {
   const [credits, setCredits] = useState(0);
   const [colorings, setColorings] = useState<Coloring[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +65,7 @@ export default function DashboardPage() {
     }
   }, [router]); // Dependencies for fetchUserData
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchColorings = useCallback(async (userId: string, isLoadMore = false) => {
     try {
       if (isLoadMore) {
@@ -113,8 +115,7 @@ export default function DashboardPage() {
         setLoadingMore(false);
       }
     }
-  }, []); // Removed lastDoc dependency
-
+  }, []); // Keep dependency array as is, added disable comment above
 
   useEffect(() => {
     const success = searchParams?.get('success');
@@ -364,6 +365,27 @@ export default function DashboardPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
         </svg>
       </Link>
+    </div>
+  );
+}
+
+// New default export component that wraps DashboardContent in Suspense
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoadingFallback />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+// Simple loading fallback component
+function DashboardLoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading dashboard...</p>
+      </div>
     </div>
   );
 } 
