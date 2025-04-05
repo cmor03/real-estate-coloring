@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         {
           role: "user",
           content: [
-            { type: "text", text: "Provide an extremely detailed description of this real estate image. Focus on all architectural details, colors, textures, landscaping, and any unique features. Be as specific as possible. This will be fed into another model, so you must not leave out a single detail needed to reconstruct the picture from text. Be sure to maintain the number and positions of doors. Use all 10,000 tokens you have to generate this description. " },
+            { type: "text", text: "Provide an extremely detailed description of this real estate image. Focus on all architectural details, colors, textures, landscaping, and any unique features. Be as specific as possible. This will be fed into another model, so you must not leave out a single detail needed to reconstruct the picture from text. Be sure to maintain the number and positions of doors. Use all 10,000 tokens you have to generate this description. Include things like camera angle so that the image can be reconstructed exactly." },
             {
               type: "image_url",
               image_url: {
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Use DALL-E to generate a coloring book version
     const coloringBookPrompt = `Create a coloring book style illustration of a real estate property based on this description: ${imageDescription}. 
-    The image should be in a clean, simple line art style suitable for children to color in. YOU MUST HAVE INTENSE ATTENTION TO DETAIL. MAKE IT EXACTLY AS DESCRIBED AS A COLORING BOOK.
+    The image should be in a clean, simple line art style suitable for children to color in. YOU MUST HAVE INTENSE ATTENTION TO DETAIL. MAKE IT EXACTLY AS DESCRIBED AS A COLORING BOOK. 
     Include clear outlines with no shading or complex textures. 
     Make it look like a professional coloring book page with clean lines and appropriate level of detail.`;
 
