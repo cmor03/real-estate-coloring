@@ -17,9 +17,11 @@ interface Coloring {
 
 const ITEMS_PER_PAGE = 9;
 
-// Stripe price IDs
-const STRIPE_PRICE_IDS = {
-  TWENTY_CREDITS: 'price_20credits', // $10 for 20 credits
+// Define Price IDs directly in the component or import them
+const PRICE_IDS = {
+  TWENTY_CREDITS: 'price_1RAImAJBbM0r4Zwl3r6902lw', // $10 for 20 credits
+  FIFTY_CREDITS: 'price_50credits', // $20 for 50 credits
+  HUNDRED_CREDITS: 'price_100credits', // $35 for 100 credits
 };
 
 // Renamed original component to DashboardContent
@@ -257,7 +259,7 @@ function DashboardContent() {
               Credits: {credits}
             </div>
             <button
-              onClick={() => handleBuyCredits(STRIPE_PRICE_IDS.TWENTY_CREDITS)}
+              onClick={() => handleBuyCredits(PRICE_IDS.TWENTY_CREDITS)}
               disabled={isProcessingPayment}
               className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >

@@ -7,9 +7,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-03-31.basil',
 });
 
-// Define credit amounts for different price IDs
-const CREDIT_AMOUNTS: Record<string, number> = {
-  'price_20credits': 20, // $10 for 20 credits
+// Map Price IDs to credit amounts
+const priceToCreditsMap: { [key: string]: number } = {
+  'price_1RAImAJBbM0r4Zwl3r6902lw': 20, // $10 for 20 credits
+  'price_50credits': 50, // $20 for 50 credits
+  'price_100credits': 100, // $35 for 100 credits
 };
 
 export async function POST(request: NextRequest) {
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Get the credit amount for this price ID
-      const creditAmount = CREDIT_AMOUNTS[priceId];
+      const creditAmount = priceToCreditsMap[priceId];
       if (!creditAmount) {
         console.error(`No credit amount defined for price ID: ${priceId}`);
         return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 });

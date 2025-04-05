@@ -7,9 +7,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-03-31.basil',
 });
 
-// Define price IDs
+// Define Price IDs
 const PRICE_IDS = {
-  TWENTY_CREDITS: 'price_20credits', // $10 for 20 credits
+  TWENTY_CREDITS: 'price_1RAImAJBbM0r4Zwl3r6902lw', // $10 for 20 credits
+  FIFTY_CREDITS: 'price_50credits', // $20 for 50 credits
+  HUNDRED_CREDITS: 'price_100credits', // $35 for 100 credits
 };
 
 export async function POST(request: NextRequest) {
