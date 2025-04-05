@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         {
           role: "user",
           content: [
-            { type: "text", text: "Provide an extremely detailed description of this real estate image. Focus on all architectural details, colors, textures, landscaping, and any unique features. Be as specific as possible. This will be fed into another model, so you must not leave out a single detail needed to reconstruct the picture from text. Be sure to maintain the number and positions of doors. Use all 10,000 tokens you have to generate this description. Include things like camera angle so that the image can be reconstructed exactly." },
+            { type: "text", text: "Provide an extremely detailed description of this real estate image. Focus on all architectural details, colors, textures, landscaping, and any unique features. Be as specific as possible. This will be fed into another model, so you must not leave out a single detail needed to reconstruct the picture from text. Be sure to maintain the number and positions of doors. Use all 4000 characters you have to generate this description. Include things like camera angle so that the image can be reconstructed exactly." },
             {
               type: "image_url",
               image_url: {
