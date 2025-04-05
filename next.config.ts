@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
   images: {
     domains: ['storage.googleapis.com'],
   },
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
 };
 
 export default nextConfig;
