@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
           ],
         },
       ],
-      max_tokens: 10000,
+      max_tokens: 4000,
     });
 
     const imageDescription = imageDescriptionResponse.choices[0].message.content;
